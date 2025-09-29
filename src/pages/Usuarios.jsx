@@ -22,7 +22,7 @@ function Usuarios() {
     try {
       setCargando(true);
 
-      const response = await window.electronAPI?.auth.listarUsuarios();
+      const response = await window.electronAPI?.auth.listarUsuarios(usuarioActual);
 
       if (response?.success) {
         setUsuarios(response.usuarios || []);
@@ -30,6 +30,7 @@ function Usuarios() {
         mostrarError('Error al cargar usuarios', response?.error || 'Error de conexión');
         setUsuarios([]);
       }
+      setCargando(false);
     } catch (error) {
       mostrarError('Error de conexión', 'No se pudieron cargar los usuarios');
       console.error('Error cargando usuarios:', error);
@@ -39,7 +40,7 @@ function Usuarios() {
 
   const crearUsuario = async (datosUsuario) => {
     try {
-      const response = await window.electronAPI?.auth.crearUsuario(datosUsuario);
+      const response = await window.electronAPI?.auth.crearUsuario(datosUsuario, usuarioActual);
 
       if (response?.success) {
         mostrarExito('Usuario creado correctamente');

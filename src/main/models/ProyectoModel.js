@@ -33,7 +33,7 @@ class ProyectoModel extends BaseModel {
     return await this.executeGet(sql, [id]);
   }
 
-  // Listar proyectos por usuario
+  // Listar proyectos por usuario (solo sus propios proyectos)
   async listarPorUsuario(usuarioId) {
     const sql = `
       SELECT p.*, u.nombre as nombre_creador,
@@ -44,6 +44,25 @@ class ProyectoModel extends BaseModel {
       ORDER BY p.fecha_creacion DESC
     `;
     return await this.executeQuery(sql, [usuarioId]);
+  }
+
+  // Listar proyectos accesibles por usuario (propios + públicos)
+  async listarAccesiblesPorUsuario(usuarioId) {
+    const sql = `
+      SELECT p.*, u.nombre as nombre_creador,
+        (SELECT COUNT(*) FROM registros r WHERE r.proyecto_id = p.id AND r.eliminado = 0) as total_registros,
+        CASE
+          WHEN p.usuario_creador_id = ? THEN 'propio'
+          ELSE 'publico'
+        END as tipo_acceso
+      FROM proyectos_registros p
+      LEFT JOIN usuarios u ON p.usuario_creador_id = u.id
+      WHERE p.activo = 1 AND (p.usuario_creador_id = ? OR p.es_publico = 1)
+      ORDER BY
+        CASE WHEN p.usuario_creador_id = ? THEN 0 ELSE 1 END,
+        p.fecha_creacion DESC
+    `;
+    return await this.executeQuery(sql, [usuarioId, usuarioId, usuarioId]);
   }
 
   // Listar proyectos públicos

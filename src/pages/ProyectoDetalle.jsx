@@ -21,9 +21,36 @@ function ProyectoDetalle() {
   const [mostrarFormularioRegistro, setMostrarFormularioRegistro] = useState(false);
   const [registroEditando, setRegistroEditando] = useState(null);
 
-  // Usuario simulado
-  const usuario = { id: 1, nombre: 'Admin', rol: 'administrador' };
+  // Obtener usuario actual del localStorage
+  const getUsuarioActual = () => {
+    try {
+      const sesion = localStorage.getItem('sesion_usuario');
+      if (!sesion) {
+        // Si no hay sesión, redirigir al login
+        navigate('/login');
+        return null;
+      }
+      return JSON.parse(sesion);
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+      // Si hay error leyendo la sesión, limpiar y redirigir al login
+      localStorage.removeItem('sesion_usuario');
+      navigate('/login');
+      return null;
+    }
+  };
+
   const navigate = useNavigate();
+  const usuario = getUsuarioActual();
+
+  // Si no hay usuario, mostrar loading (se redirigirá al login)
+  if (!usuario) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     cargarProyecto();
@@ -33,7 +60,7 @@ function ProyectoDetalle() {
     try {
       setCargando(true);
 
-      const response = await window.electronAPI?.proyectos.obtenerDetalle(id);
+      const response = await window.electronAPI?.proyectos.obtenerDetalle(id, usuario);
 
       if (response?.success && response.proyecto) {
         setProyecto(response.proyecto);
@@ -96,9 +123,7 @@ function ProyectoDetalle() {
       }
 
       // Cargar registros reales desde la base de datos
-      console.log(`🎯 Frontend: Solicitando registros para proyecto ID: ${proyectoActual.id}`);
       const response = await window.electronAPI?.registros.obtenerPorProyecto(proyectoActual.id);
-      console.log(`📦 Frontend: Respuesta recibida:`, response);
 
       if (response?.success) {
         setRegistros(response.registros || []);
@@ -125,7 +150,7 @@ function ProyectoDetalle() {
 
     if (confirmado) {
       try {
-        const response = await window.electronAPI?.proyectos.eliminar(proyecto.id);
+        const response = await window.electronAPI?.proyectos.eliminar(proyecto.id, usuario);
 
         if (response?.success) {
           mostrarExito('Proyecto eliminado correctamente');
@@ -151,8 +176,8 @@ function ProyectoDetalle() {
     if (confirmado) {
       try {
         const response = proyecto.es_publico
-          ? await window.electronAPI?.proyectos.hacerPrivado(proyecto.id)
-          : await window.electronAPI?.proyectos.hacerPublico(proyecto.id);
+          ? await window.electronAPI?.proyectos.hacerPrivado(proyecto.id, usuario)
+          : await window.electronAPI?.proyectos.hacerPublico(proyecto.id, usuario);
 
         if (response?.success) {
           const proyectoActualizado = {

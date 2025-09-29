@@ -10,9 +10,41 @@ function MisProyectos() {
   const [filtro, setFiltro] = useState('todos'); // 'todos', 'privados', 'publicos'
   const [busqueda, setBusqueda] = useState('');
 
-  // Temporalmente sin autenticación - simular usuario
-  const usuario = { id: 1, nombre: "Usuario Temporal" };
+  // Obtener usuario actual del localStorage
+  const getUsuarioActual = () => {
+    try {
+      const sesion = localStorage.getItem('sesion_usuario');
+      if (!sesion) {
+        // Si no hay sesión, redirigir al login
+        navigate('/login');
+        return null;
+      }
+      return JSON.parse(sesion);
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+      // Si hay error leyendo la sesión, limpiar y redirigir al login
+      localStorage.removeItem('sesion_usuario');
+      navigate('/login');
+      return null;
+    }
+  };
+
   const navigate = useNavigate();
+  const usuario = getUsuarioActual();
+
+  // Si no hay usuario, mostrar loading (se redirigirá al login)
+  if (!usuario) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Función para verificar si el usuario puede editar un proyecto
+  const puedeEditar = (proyecto) => {
+    return usuario.rol === 'administrador' || proyecto.usuario_creador_id === usuario.id;
+  };
 
   useEffect(() => {
     cargarProyectos();
@@ -23,7 +55,7 @@ function MisProyectos() {
       setCargando(true);
 
       // Cargar proyectos desde la base de datos
-      const response = await window.electronAPI?.proyectos.obtenerMisProyectos(usuario.id);
+      const response = await window.electronAPI?.proyectos.obtenerMisProyectos(usuario.id, usuario);
 
       if (response && response.success) {
         setProyectos(response.proyectos || []);
@@ -51,7 +83,7 @@ function MisProyectos() {
 
     if (confirmado) {
       try {
-        const response = await window.electronAPI?.proyectos.eliminar(proyecto.id);
+        const response = await window.electronAPI?.proyectos.eliminar(proyecto.id, usuario);
 
         if (response.success) {
           mostrarExito('Proyecto eliminado correctamente');
@@ -77,8 +109,8 @@ function MisProyectos() {
     if (confirmado) {
       try {
         const response = proyecto.es_publico
-          ? await window.electronAPI?.proyectos.hacerPrivado(proyecto.id)
-          : await window.electronAPI?.proyectos.hacerPublico(proyecto.id);
+          ? await window.electronAPI?.proyectos.hacerPrivado(proyecto.id, usuario)
+          : await window.electronAPI?.proyectos.hacerPublico(proyecto.id, usuario);
 
         if (response.success) {
           mostrarExito(`Proyecto ${accion === 'hacer público' ? 'publicado' : 'hecho privado'} correctamente`);
@@ -275,14 +307,24 @@ function MisProyectos() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {proyecto.nombre}
-                    </h3>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {proyecto.nombre}
+                      </h3>
+                      {proyecto.tipo_acceso === 'publico' && (
+                        <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">
+                          Público
+                        </span>
+                      )}
+                    </div>
                     {proyecto.descripcion && (
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {proyecto.descripcion}
                       </p>
                     )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Por: {proyecto.nombre_creador}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-1 ml-4">
                     {proyecto.es_publico ? (
@@ -311,35 +353,37 @@ function MisProyectos() {
                     <span>Abrir</span>
                   </button>
 
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => navigate(`/proyecto/${proyecto.id}/editar`)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Editar proyecto"
-                    >
-                      <FaEdit className="text-sm" />
-                    </button>
+                  {puedeEditar(proyecto) && (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => navigate(`/proyecto/${proyecto.id}/editar`)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Editar proyecto"
+                      >
+                        <FaEdit className="text-sm" />
+                      </button>
 
-                    <button
-                      onClick={() => cambiarVisibilidad(proyecto)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        proyecto.es_publico
-                          ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                          : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
-                      }`}
-                      title={proyecto.es_publico ? 'Hacer privado' : 'Hacer público'}
-                    >
-                      {proyecto.es_publico ? <FaLock className="text-sm" /> : <FaGlobe className="text-sm" />}
-                    </button>
+                      <button
+                        onClick={() => cambiarVisibilidad(proyecto)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          proyecto.es_publico
+                            ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                            : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                        }`}
+                        title={proyecto.es_publico ? 'Hacer privado' : 'Hacer público'}
+                      >
+                        {proyecto.es_publico ? <FaLock className="text-sm" /> : <FaGlobe className="text-sm" />}
+                      </button>
 
-                    <button
-                      onClick={() => eliminarProyecto(proyecto)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Eliminar proyecto"
-                    >
-                      <FaTrash className="text-sm" />
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => eliminarProyecto(proyecto)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Eliminar proyecto"
+                      >
+                        <FaTrash className="text-sm" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

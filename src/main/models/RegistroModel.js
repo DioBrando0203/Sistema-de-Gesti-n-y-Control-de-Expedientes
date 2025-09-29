@@ -72,58 +72,39 @@ class RegistroModel extends BaseModel {
 
   // Agregar nuevo registro (transacción completa)
   async agregar(registroData) {
-    console.log("📋 RegistroModel.agregar - Datos recibidos:", JSON.stringify(registroData, null, 2));
-
     const { nombre, numero, dni, expediente, estado, fecha_registro, fecha_en_caja, proyecto_id, usuario_creador_id } = registroData;
 
-    console.log("📋 Campos extraídos:", { nombre, numero, dni, expediente, estado, fecha_registro, fecha_en_caja, proyecto_id, usuario_creador_id });
-
-    console.log("🔧 Iniciando validaciones...");
     // Validaciones
     this.validarCampos(registroData);
-    console.log("✅ validarCampos completado");
-
     await this.validarExpedienteDuplicado(expediente);
-    console.log("✅ validarExpedienteDuplicado completado");
 
     const fechaEntrega = estado === "Entregado" ? this.getFechaLocal() : null;
-    console.log("✅ fechaEntrega calculada:", fechaEntrega);
-
-    console.log("🔧 Iniciando executeTransaction...");
 
     return this.executeTransaction([
       async () => {
         try {
-          console.log("🔧 Paso 1: Insertando persona...");
           // Insertar persona
           const personaResult = await this.executeRun(
             `INSERT INTO personas (nombre, dni, numero) VALUES (?, ?, ?)`,
             [nombre, dni, numero]
           );
-          console.log("✅ Persona insertada, ID:", personaResult.lastID);
 
-          console.log("🔧 Paso 2: Insertando expediente...");
           // Insertar expediente
           const expedienteResult = await this.executeRun(
             `INSERT INTO expedientes (persona_id, codigo, fecha_entrega) VALUES (?, NULLIF(?, ''), ?)`,
             [personaResult.lastID, expediente, fechaEntrega]
           );
-          console.log("✅ Expediente insertado, ID:", expedienteResult.lastID);
 
-          console.log("🔧 Paso 3: Obteniendo estado_id...");
           // Obtener estado_id
           const estadoRow = await this.executeGet(
             `SELECT id FROM estados WHERE nombre = ?`,
             [estado]
           );
-          console.log("✅ Estado encontrado:", estadoRow);
 
           if (!estadoRow) {
             throw new Error("Estado inválido");
           }
 
-          console.log("🔧 Paso 4: Insertando registro...");
-          console.log("🔧 Datos para insertar:", {proyecto_id, persona_id: personaResult.lastID, expediente_id: expedienteResult.lastID, estado_id: estadoRow.id, usuario_creador_id, fecha_registro, fecha_en_caja});
           // Insertar registro
           const registroResult = await this.executeRun(
             `INSERT INTO registros (
@@ -131,7 +112,6 @@ class RegistroModel extends BaseModel {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
             [proyecto_id, personaResult.lastID, expedienteResult.lastID, estadoRow.id, usuario_creador_id, fecha_registro, fecha_en_caja]
           );
-          console.log("✅ Registro insertado, ID:", registroResult.lastID);
 
           return {
             id: registroResult.lastID,
@@ -147,7 +127,6 @@ class RegistroModel extends BaseModel {
             fecha_en_caja,
           };
         } catch (error) {
-          console.error("❌ Error en transacción de guardado:", error);
           throw error;
         }
       }

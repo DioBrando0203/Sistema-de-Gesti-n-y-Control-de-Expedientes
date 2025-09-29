@@ -41,9 +41,17 @@ class ProyectoController extends BaseController {
   }
 
   // Obtener proyectos del usuario
-  async obtenerMisProyectos(usuarioId) {
+  async obtenerMisProyectos(usuarioId, usuario = null) {
     try {
-      const proyectos = await this.proyectoModel.listarPorUsuario(usuarioId);
+      let proyectos;
+
+      // Si el usuario es administrador, mostrar todos los proyectos
+      if (usuario && usuario.rol === 'administrador') {
+        proyectos = await this.proyectoModel.listarTodos();
+      } else {
+        // Para trabajadores, mostrar solo proyectos accesibles (propios + públicos)
+        proyectos = await this.proyectoModel.listarAccesiblesPorUsuario(usuarioId);
+      }
 
       return {
         success: true,

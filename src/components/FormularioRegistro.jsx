@@ -30,8 +30,6 @@ function FormularioRegistro({ mostrar, onCerrar, onRegistroCreado, registroEdita
     try {
       let response;
 
-      console.log('📋 FormularioRegistro - Datos del formData:', formData);
-
       if (registroEditar) {
         // Actualizar registro existente
         const datosActualizar = {
@@ -40,7 +38,6 @@ function FormularioRegistro({ mostrar, onCerrar, onRegistroCreado, registroEdita
           persona_id: registroEditar.persona_id,
           expediente_id: registroEditar.expediente_id
         };
-        console.log('📋 FormularioRegistro - Enviando para actualizar:', datosActualizar);
         response = await window.electronAPI?.registros.actualizar(datosActualizar);
       } else {
         // Crear nuevo registro
@@ -49,11 +46,8 @@ function FormularioRegistro({ mostrar, onCerrar, onRegistroCreado, registroEdita
           proyecto_id: 1, // Proyecto por defecto
           usuario_creador_id: 1 // Usuario por defecto
         };
-        console.log('📋 FormularioRegistro - Enviando para crear:', datosCrear);
         response = await window.electronAPI?.registros.agregar(datosCrear);
       }
-
-      console.log('Respuesta del servidor:', response);
 
       if (response && (response.success || response.registro)) {
         mostrarExito(registroEditar ? 'Registro actualizado correctamente' : 'Registro creado correctamente');

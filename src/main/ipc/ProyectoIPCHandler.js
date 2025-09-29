@@ -20,9 +20,9 @@ class ProyectoIPCHandler {
     });
 
     // Obtener mis proyectos
-    ipcMain.handle("proyecto-obtener-mis-proyectos", async (event, { usuarioId }) => {
+    ipcMain.handle("proyecto-obtener-mis-proyectos", async (event, { usuarioId, usuario }) => {
       try {
-        return await this.proyectoController.obtenerMisProyectos(usuarioId);
+        return await this.proyectoController.obtenerMisProyectos(usuarioId, usuario);
       } catch (error) {
         console.error("Error en proyecto-obtener-mis-proyectos:", error);
         return { success: false, error: error.message };

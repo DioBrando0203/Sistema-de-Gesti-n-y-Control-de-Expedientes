@@ -9,9 +9,36 @@ function ProyectosPublicos() {
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
 
-  // Usuario simulado
-  const usuario = { id: 1, nombre: 'Admin', rol: 'administrador' };
+  // Obtener usuario actual del localStorage
+  const getUsuarioActual = () => {
+    try {
+      const sesion = localStorage.getItem('sesion_usuario');
+      if (!sesion) {
+        // Si no hay sesión, redirigir al login
+        navigate('/login');
+        return null;
+      }
+      return JSON.parse(sesion);
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+      // Si hay error leyendo la sesión, limpiar y redirigir al login
+      localStorage.removeItem('sesion_usuario');
+      navigate('/login');
+      return null;
+    }
+  };
+
   const navigate = useNavigate();
+  const usuario = getUsuarioActual();
+
+  // Si no hay usuario, mostrar loading (se redirigirá al login)
+  if (!usuario) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     cargarProyectosPublicos();

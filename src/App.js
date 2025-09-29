@@ -7,6 +7,33 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 
 function App() {
   useEffect(() => {
+    // Limpiar sesiones inconsistentes al iniciar la aplicación
+    const limpiarSesionesInconsistentes = () => {
+      try {
+        const usuarioAntiguo = localStorage.getItem('usuario');
+        const sesionNueva = localStorage.getItem('sesion_usuario');
+
+        // Si existe la clave antigua pero no la nueva, limpiar todo
+        if (usuarioAntiguo && !sesionNueva) {
+          localStorage.removeItem('usuario');
+        }
+
+        // Verificar que la sesión actual tenga la estructura correcta
+        if (sesionNueva) {
+          const usuario = JSON.parse(sesionNueva);
+          if (!usuario.id || !usuario.rol) {
+            localStorage.removeItem('sesion_usuario');
+          }
+        }
+      } catch (error) {
+        // Si hay error parseando, limpiar todo
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('sesion_usuario');
+      }
+    };
+
+    limpiarSesionesInconsistentes();
+
     const desbloquear = () => {
       document.body.style.pointerEvents = "auto";
   

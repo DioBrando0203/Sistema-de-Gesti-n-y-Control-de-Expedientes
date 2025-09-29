@@ -8,12 +8,12 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // Verificar si hay sesión guardada
-    const usuarioGuardado = localStorage.getItem('usuario');
+    const usuarioGuardado = localStorage.getItem('sesion_usuario');
     if (usuarioGuardado) {
       try {
         setUsuario(JSON.parse(usuarioGuardado));
       } catch (error) {
-        localStorage.removeItem('usuario');
+        localStorage.removeItem('sesion_usuario');
       }
     }
     setCargando(false);
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
       if (response.success) {
         const usuarioData = response.usuario;
         setUsuario(usuarioData);
-        localStorage.setItem('usuario', JSON.stringify(usuarioData));
+        localStorage.setItem('sesion_usuario', JSON.stringify(usuarioData));
         return usuarioData;
       } else {
         throw new Error(response.error || 'Error al iniciar sesión');
@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUsuario(null);
-    localStorage.removeItem('usuario');
+    localStorage.removeItem('sesion_usuario');
   };
 
   const estaAutenticado = () => {

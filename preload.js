@@ -118,13 +118,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // API de Proyectos
   proyectos: {
-    obtenerMisProyectos: (usuarioId) => ipcRenderer.invoke("proyecto-obtener-mis-proyectos", { usuarioId }),
-    crear: (datos) => ipcRenderer.invoke("proyecto-crear", { datos, usuario: { id: 1 } }),
-    eliminar: (id) => ipcRenderer.invoke("proyecto-eliminar", { id, usuario: { id: 1 } }),
-    hacerPrivado: (id) => ipcRenderer.invoke("proyecto-hacer-privado", { id, usuario: { id: 1 } }),
-    hacerPublico: (id) => ipcRenderer.invoke("proyecto-hacer-publico", { id, usuario: { id: 1 } }),
+    obtenerMisProyectos: (usuarioId, usuario) => ipcRenderer.invoke("proyecto-obtener-mis-proyectos", { usuarioId, usuario }),
+    crear: (datos, usuario) => ipcRenderer.invoke("proyecto-crear", { datos, usuario: usuario || { id: 1 } }),
+    eliminar: (id, usuario) => ipcRenderer.invoke("proyecto-eliminar", { id, usuario: usuario || { id: 1 } }),
+    hacerPrivado: (id, usuario) => ipcRenderer.invoke("proyecto-hacer-privado", { id, usuario: usuario || { id: 1 } }),
+    hacerPublico: (id, usuario) => ipcRenderer.invoke("proyecto-hacer-publico", { id, usuario: usuario || { id: 1 } }),
     obtenerPublicos: () => ipcRenderer.invoke("proyecto-obtener-publicos"),
-    obtenerDetalle: (id) => ipcRenderer.invoke("proyecto-obtener-por-id", { id, usuario: { id: 1 } })
+    obtenerDetalle: (id, usuario) => ipcRenderer.invoke("proyecto-obtener-por-id", { id, usuario: usuario || { id: 1 } })
   },
 
   // API de Auditoría

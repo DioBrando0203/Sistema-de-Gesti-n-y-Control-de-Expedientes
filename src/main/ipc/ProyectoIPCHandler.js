@@ -9,6 +9,9 @@ class ProyectoIPCHandler {
   registerHandlers() {
     console.log("📂 Registrando handlers de proyectos...");
 
+    // Resetear la lista de canales registrados
+    this.registeredChannels = [];
+
     // Crear proyecto
     ipcMain.handle("proyecto-crear", async (event, { datos, usuario }) => {
       try {
@@ -134,6 +137,7 @@ class ProyectoIPCHandler {
     ];
 
     console.log("✅ Handlers básicos de proyectos registrados");
+    console.log(`📋 Canales básicos registrados: ${this.registeredChannels.length}`, this.registeredChannels);
   }
 
   registerAdvancedHandlers() {
@@ -172,6 +176,7 @@ class ProyectoIPCHandler {
 
     this.registeredChannels.push(...advancedChannels);
     console.log("✅ Handlers avanzados de proyectos registrados");
+    console.log(`📋 Total canales registrados después de avanzados: ${this.registeredChannels.length}`);
   }
 
   registerAdminHandlers() {
@@ -193,10 +198,41 @@ class ProyectoIPCHandler {
 
     this.registeredChannels.push(...adminChannels);
     console.log("✅ Handlers de administración de proyectos registrados");
+    console.log(`📋 Total canales registrados final: ${this.registeredChannels.length}`);
   }
 
   listHandlers() {
-    return this.registeredChannels.map(channel => `  • ${channel}`);
+    if (!this.registeredChannels || this.registeredChannels.length === 0) {
+      console.warn("⚠️ No hay handlers de proyecto registrados para listar");
+      return [];
+    }
+
+    return this.registeredChannels.map(channel => ({
+      channel,
+      controller: 'ProyectoController',
+      method: this.getMethodForChannel(channel),
+      type: 'handle'
+    }));
+  }
+
+  getMethodForChannel(channel) {
+    const methodMap = {
+      'proyecto-crear': 'crear',
+      'proyecto-obtener-mis-proyectos': 'obtenerMisProyectos',
+      'proyecto-obtener-publicos': 'obtenerProyectosPublicos',
+      'proyecto-obtener-por-id': 'obtenerPorId',
+      'proyecto-actualizar': 'actualizar',
+      'proyecto-eliminar': 'eliminar',
+      'proyecto-hacer-publico': 'hacerPublico',
+      'proyecto-hacer-privado': 'hacerPrivado',
+      'proyecto-verificar-acceso': 'verificarAcceso',
+      'proyecto-buscar': 'buscar',
+      'proyecto-duplicar': 'duplicar',
+      'proyecto-obtener-estadisticas': 'obtenerEstadisticas',
+      'proyecto-exportar-excel': 'exportarExcel',
+      'proyecto-obtener-todos': 'obtenerTodos'
+    };
+    return methodMap[channel] || 'unknown';
   }
 
   removeAllHandlers() {

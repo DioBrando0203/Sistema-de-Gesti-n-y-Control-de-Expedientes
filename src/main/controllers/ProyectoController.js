@@ -40,7 +40,7 @@ class ProyectoController extends BaseController {
     }
   }
 
-  // Obtener proyectos del usuario
+  // Obtener proyectos del usuario (solo sus propios proyectos)
   async obtenerMisProyectos(usuarioId, usuario = null) {
     try {
       let proyectos;
@@ -49,8 +49,8 @@ class ProyectoController extends BaseController {
       if (usuario && usuario.rol === 'administrador') {
         proyectos = await this.proyectoModel.listarTodos();
       } else {
-        // Para trabajadores, mostrar solo proyectos accesibles (propios + públicos)
-        proyectos = await this.proyectoModel.listarAccesiblesPorUsuario(usuarioId);
+        // Para trabajadores, mostrar solo sus propios proyectos (públicos y privados)
+        proyectos = await this.proyectoModel.listarPorUsuario(usuarioId);
       }
 
       return {

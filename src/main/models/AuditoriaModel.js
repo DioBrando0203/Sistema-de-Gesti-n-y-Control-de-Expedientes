@@ -22,7 +22,7 @@ class AuditoriaModel extends BaseModel {
     `;
 
     try {
-      const result = await this.ejecutar(sql, [
+      const result = await this.executeRun(sql, [
         usuario_id,
         accion,
         tabla_afectada,
@@ -184,7 +184,7 @@ class AuditoriaModel extends BaseModel {
         WHERE fecha < datetime('now', '-${diasAntiguedad} days')
       `;
 
-      const result = await this.ejecutar(sql);
+      const result = await this.executeRun(sql);
 
       return {
         success: true,
@@ -303,7 +303,7 @@ class AuditoriaModel extends BaseModel {
       WHERE fecha < datetime('now', '-${diasAMantener} days')
     `;
 
-    const result = await this.ejecutar(sql);
+    const result = await this.executeRun(sql);
     return result.changes;
   }
 

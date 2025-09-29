@@ -307,24 +307,14 @@ function MisProyectos() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {proyecto.nombre}
-                      </h3>
-                      {proyecto.tipo_acceso === 'publico' && (
-                        <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">
-                          Público
-                        </span>
-                      )}
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {proyecto.nombre}
+                    </h3>
                     {proyecto.descripcion && (
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {proyecto.descripcion}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Por: {proyecto.nombre_creador}
-                    </p>
                   </div>
                   <div className="flex items-center space-x-1 ml-4">
                     {proyecto.es_publico ? (

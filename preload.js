@@ -124,6 +124,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     hacerPrivado: (id, usuario) => ipcRenderer.invoke("proyecto-hacer-privado", { id, usuario: usuario || { id: 1 } }),
     hacerPublico: (id, usuario) => ipcRenderer.invoke("proyecto-hacer-publico", { id, usuario: usuario || { id: 1 } }),
     obtenerPublicos: () => ipcRenderer.invoke("proyecto-obtener-publicos"),
+    obtenerProyectosPublicos: () => ipcRenderer.invoke("proyecto-obtener-publicos"),
     obtenerDetalle: (id, usuario) => ipcRenderer.invoke("proyecto-obtener-por-id", { id, usuario: usuario || { id: 1 } })
   },
 

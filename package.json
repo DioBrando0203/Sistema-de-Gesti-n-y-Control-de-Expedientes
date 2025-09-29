@@ -1,0 +1,121 @@
+{
+  "name": "a30",
+  "version": "1.0.0",
+  "description": "Aplicación de Control de Expedientes de Constancias de Pago",
+  "companyName": "Practicante: Brando Armas",
+  "copyright": "© 2025 Brando Armas",
+  "main": "main.js",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack",
+    "start": "webpack-dev-server --mode development",
+    "dev": "concurrently \"npm start\" \"npm run electron\"",
+    "electron": "electron .",
+    "package": "electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "release": "npm run build && electron-builder && start release"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@electron/remote": "^2.1.2",
+    "@floating-ui/react": "^0.27.7",
+    "@floating-ui/react-dom": "^2.1.2",
+    "autoprefixer": "^10.4.16",
+    "chart.js": "^4.4.9",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "fs-extra": "^11.3.0",
+    "fuse.js": "^7.1.0",
+    "global": "^4.4.0",
+    "path-browserify": "^1.0.1",
+    "pdfmake": "^0.2.18",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.0",
+    "react-datepicker": "^8.2.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^6.30.0",
+    "react-toastify": "^10.0.6",
+    "react-virtualized": "^9.22.4",
+    "react-window": "^1.8.6",
+    "sqlite3": "^5.1.7",
+    "sweetalert2": "^11.19.1",
+    "tailwindcss": "^3.3.3",
+    "wait-on": "^8.0.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.9",
+    "@babel/plugin-transform-runtime": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-react": "^7.26.3",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "babel-loader": "^10.0.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "css-loader": "^7.1.2",
+    "cssnano": "^6.0.1",
+    "electron": "^38.1.2",
+    "electron-builder": "^24.13.3",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.6.3",
+    "mini-css-extract-plugin": "^2.9.2",
+    "postcss": "^8.4.31",
+    "postcss-import": "^15.1.0",
+    "postcss-loader": "^7.0.2",
+    "postcss-nested": "^6.0.1",
+    "process": "^0.11.10",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.0"
+  },
+  "build": {
+    "appId": "com.BrandoArmasuns.a30",
+    "productName": "A30%",
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "./database.sqlite",
+        "to": "database.sqlite"
+      },
+      {
+        "from": "./sqlite3.exe",
+        "to": "sqlite3.exe"
+      },
+      {
+        "from": "./sqlite3.dll",
+        "to": "sqlite3.dll"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/icono.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "public/icono.ico",
+      "uninstallerIcon": "public/icono.ico",
+      "shortcutName": "A30%",
+      "createDesktopShortcut": true
+    }
+  }
+}

@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "sweetalert2/dist/sweetalert2.min.css";
+
+/* 🔇 Eliminar efectos de enfoque no deseados */
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Limpieza extra en elementos interactivos */
+input:focus,
+button:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* (Opcional) Solo mantener accesibilidad con teclado */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 🧯 Corrección visual para Toastify */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+  pointer-events: none !important;
+}
+
+.Toastify__toast {
+  pointer-events: auto !important;
+  background-color: #1e293b !important; /* slate-800 */
+  color: white !important;
+  opacity: 1 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: none !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  font-size: 0.875rem !important;   /* text-sm */
+  font-weight: 500 !important;      /* font-medium */
+}
+
+body.modal-lote-activo {
+  position: relative;
+  z-index: 0;
+}
+
+body.modal-lote-activo #root {
+  position: relative;
+  z-index: 0;
+}

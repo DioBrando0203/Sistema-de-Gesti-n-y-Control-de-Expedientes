@@ -195,6 +195,7 @@ function ProyectoDetalle() {
   };
 
   const registrosFiltrados = registros.filter(registro =>
+    (registro.nombre || '').toLowerCase().includes(busqueda.toLowerCase()) ||
     (registro.nombres || '').toLowerCase().includes(busqueda.toLowerCase()) ||
     (registro.apellidos || '').toLowerCase().includes(busqueda.toLowerCase()) ||
     (registro.dni || '').includes(busqueda) ||
@@ -510,7 +511,7 @@ function ProyectoDetalle() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Persona</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expediente</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo Documento</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Número</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
@@ -528,29 +529,32 @@ function ProyectoDetalle() {
                               </div>
                               <div className="ml-4">
                                 <div className="text-sm font-medium text-gray-900">
-                                  {registro.nombres} {registro.apellidos}
+                                  {registro.nombre || `${registro.nombres || ''} ${registro.apellidos || ''}`.trim()}
                                 </div>
-                                <div className="text-sm text-gray-500">DNI: {registro.dni}</div>
+                                <div className="text-sm text-gray-500">DNI: {registro.dni || '---'}</div>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <code className="bg-gray-100 px-2 py-1 rounded text-xs">{registro.expediente}</code>
+                            <code className="bg-gray-100 px-2 py-1 rounded text-xs">{registro.expediente || '---'}</code>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {registro.tipo_documento}
+                            {registro.numero || '---'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 text-xs rounded-full ${
-                              registro.estado === 'Aprobado' ? 'bg-green-100 text-green-800' :
-                              registro.estado === 'Pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
+                              registro.estado === 'Vigente' ? 'bg-green-100 text-green-800' :
+                              registro.estado === 'En Proceso' ? 'bg-yellow-100 text-yellow-800' :
+                              registro.estado === 'Recibido' ? 'bg-blue-100 text-blue-800' :
+                              registro.estado === 'En Caja' ? 'bg-purple-100 text-purple-800' :
+                              registro.estado === 'Entregado' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
                             }`}>
-                              {registro.estado}
+                              {registro.estado || '---'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(registro.fecha_registro).toLocaleDateString()}
+                            {registro.fecha_registro ? new Date(registro.fecha_registro).toLocaleDateString() : '---'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">
@@ -595,7 +599,7 @@ function ProyectoDetalle() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase">Persona</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase">Expediente</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase">Tipo Documento</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase">Estado</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase">Eliminado por</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase">Fecha Eliminación</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-red-600 uppercase">Acciones</th>
@@ -613,9 +617,9 @@ function ProyectoDetalle() {
                               </div>
                               <div className="ml-4">
                                 <div className="text-sm font-medium text-gray-900">
-                                  {registro.nombres} {registro.apellidos}
+                                  {registro.nombre || `${registro.nombres || ''} ${registro.apellidos || ''}`.trim()}
                                 </div>
-                                <div className="text-sm text-gray-500">DNI: {registro.dni}</div>
+                                <div className="text-sm text-gray-500">DNI: {registro.dni || '---'}</div>
                               </div>
                             </div>
                           </td>
@@ -623,7 +627,7 @@ function ProyectoDetalle() {
                             <code className="bg-gray-100 px-2 py-1 rounded text-xs">{registro.expediente}</code>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {registro.tipo_documento}
+                            {registro.estado || '---'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{registro.eliminado_por}</div>
@@ -755,26 +759,9 @@ function ProyectoDetalle() {
             setMostrarFormularioRegistro(false);
             setRegistroEditando(null);
           }}
-          onSave={(nuevoRegistro) => {
-            // Mapear los datos del formulario al formato que espera la vista
-            const registroFormateado = {
-              id: nuevoRegistro.id || Date.now(),
-              nombres: nuevoRegistro.nombre ? nuevoRegistro.nombre.split(' ')[0] : '',
-              apellidos: nuevoRegistro.nombre ? nuevoRegistro.nombre.split(' ').slice(1).join(' ') : '',
-              dni: nuevoRegistro.dni || '',
-              expediente: nuevoRegistro.expediente || '',
-              estado: nuevoRegistro.estado || 'Recibido',
-              estado_id: nuevoRegistro.estado_id || 1,
-              fecha_registro: nuevoRegistro.fecha_registro || new Date().toISOString(),
-              numero: nuevoRegistro.numero || '',
-              tipo_documento: 'Constancia' // Valor por defecto
-            };
-
-            if (registroEditando) {
-              setRegistros(prev => prev.map(r => r.id === registroFormateado.id ? registroFormateado : r));
-            } else {
-              setRegistros(prev => [...prev, registroFormateado]);
-            }
+          onSave={async () => {
+            // Recargar los registros desde la base de datos después de guardar
+            await cargarRegistros();
             setMostrarFormularioRegistro(false);
             setRegistroEditando(null);
           }}

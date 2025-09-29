@@ -7,7 +7,7 @@ function FormularioRegistro({ mostrar, onCerrar, onRegistroCreado, registroEdita
     nombre: registroEditar?.nombre || '',
     dni: registroEditar?.dni || '',
     numero: registroEditar?.numero || '',
-    expediente: registroEditar?.expediente || '',
+    expediente: registroEditar?.expediente || registroEditar?.codigo || '',
     estado: registroEditar?.estado || 'Recibido',
     fecha_registro: registroEditar?.fecha_registro || new Date().toISOString().split('T')[0],
     fecha_en_caja: registroEditar?.fecha_en_caja || ''
@@ -30,21 +30,27 @@ function FormularioRegistro({ mostrar, onCerrar, onRegistroCreado, registroEdita
     try {
       let response;
 
+      console.log('📋 FormularioRegistro - Datos del formData:', formData);
+
       if (registroEditar) {
         // Actualizar registro existente
-        response = await window.electronAPI?.registros.actualizar({
+        const datosActualizar = {
           ...formData,
           id: registroEditar.id,
           persona_id: registroEditar.persona_id,
           expediente_id: registroEditar.expediente_id
-        });
+        };
+        console.log('📋 FormularioRegistro - Enviando para actualizar:', datosActualizar);
+        response = await window.electronAPI?.registros.actualizar(datosActualizar);
       } else {
         // Crear nuevo registro
-        response = await window.electronAPI?.registros.agregar({
+        const datosCrear = {
           ...formData,
           proyecto_id: 1, // Proyecto por defecto
           usuario_creador_id: 1 // Usuario por defecto
-        });
+        };
+        console.log('📋 FormularioRegistro - Enviando para crear:', datosCrear);
+        response = await window.electronAPI?.registros.agregar(datosCrear);
       }
 
       console.log('Respuesta del servidor:', response);

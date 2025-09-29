@@ -274,13 +274,13 @@ function Informacion() {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Tipo de Documento
+                            Expediente
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Número
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Fecha Emisión
+                            Fecha Registro
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
@@ -300,17 +300,17 @@ function Informacion() {
                               <div className="flex items-center">
                                 <FaFileAlt className="text-blue-600 mr-2" />
                                 <span className="text-sm font-medium text-gray-900">
-                                  {registro.tipo_documento}
+                                  {registro.expediente || registro.codigo || '---'}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                                {registro.numero_documento}
+                                {registro.numero || '---'}
                               </code>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(registro.fecha_emision).toLocaleDateString()}
+                              {registro.fecha_registro ? new Date(registro.fecha_registro).toLocaleDateString() : '---'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

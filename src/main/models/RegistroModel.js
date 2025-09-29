@@ -29,9 +29,9 @@ class RegistroModel extends BaseModel {
         r.fecha_en_caja,
         u.nombre AS creado_por
       FROM registros r
-      JOIN personas p ON r.persona_id = p.id
-      JOIN expedientes e ON r.expediente_id = e.id
-      JOIN estados s ON r.estado_id = s.id
+      LEFT JOIN personas p ON r.persona_id = p.id
+      LEFT JOIN expedientes e ON r.expediente_id = e.id
+      LEFT JOIN estados s ON r.estado_id = s.id
       LEFT JOIN usuarios u ON r.usuario_creador_id = u.id
       ${whereClause}
       ORDER BY r.id ASC
@@ -72,59 +72,84 @@ class RegistroModel extends BaseModel {
 
   // Agregar nuevo registro (transacción completa)
   async agregar(registroData) {
+    console.log("📋 RegistroModel.agregar - Datos recibidos:", JSON.stringify(registroData, null, 2));
+
     const { nombre, numero, dni, expediente, estado, fecha_registro, fecha_en_caja, proyecto_id, usuario_creador_id } = registroData;
-    
+
+    console.log("📋 Campos extraídos:", { nombre, numero, dni, expediente, estado, fecha_registro, fecha_en_caja, proyecto_id, usuario_creador_id });
+
+    console.log("🔧 Iniciando validaciones...");
     // Validaciones
     this.validarCampos(registroData);
+    console.log("✅ validarCampos completado");
+
     await this.validarExpedienteDuplicado(expediente);
+    console.log("✅ validarExpedienteDuplicado completado");
 
     const fechaEntrega = estado === "Entregado" ? this.getFechaLocal() : null;
+    console.log("✅ fechaEntrega calculada:", fechaEntrega);
+
+    console.log("🔧 Iniciando executeTransaction...");
 
     return this.executeTransaction([
       async () => {
-        // Insertar persona
-        const personaResult = await this.executeRun(
-          `INSERT INTO personas (nombre, dni, numero) VALUES (?, ?, ?)`,
-          [nombre, dni, numero]
-        );
+        try {
+          console.log("🔧 Paso 1: Insertando persona...");
+          // Insertar persona
+          const personaResult = await this.executeRun(
+            `INSERT INTO personas (nombre, dni, numero) VALUES (?, ?, ?)`,
+            [nombre, dni, numero]
+          );
+          console.log("✅ Persona insertada, ID:", personaResult.lastID);
 
-        // Insertar expediente
-        const expedienteResult = await this.executeRun(
-          `INSERT INTO expedientes (persona_id, codigo, fecha_entrega) VALUES (?, NULLIF(?, ''), ?)`,
-          [personaResult.lastID, expediente, fechaEntrega]
-        );
+          console.log("🔧 Paso 2: Insertando expediente...");
+          // Insertar expediente
+          const expedienteResult = await this.executeRun(
+            `INSERT INTO expedientes (persona_id, codigo, fecha_entrega) VALUES (?, NULLIF(?, ''), ?)`,
+            [personaResult.lastID, expediente, fechaEntrega]
+          );
+          console.log("✅ Expediente insertado, ID:", expedienteResult.lastID);
 
-        // Obtener estado_id
-        const estadoRow = await this.executeGet(
-          `SELECT id FROM estados WHERE nombre = ?`,
-          [estado]
-        );
+          console.log("🔧 Paso 3: Obteniendo estado_id...");
+          // Obtener estado_id
+          const estadoRow = await this.executeGet(
+            `SELECT id FROM estados WHERE nombre = ?`,
+            [estado]
+          );
+          console.log("✅ Estado encontrado:", estadoRow);
 
-        if (!estadoRow) {
-          throw new Error("Estado inválido");
+          if (!estadoRow) {
+            throw new Error("Estado inválido");
+          }
+
+          console.log("🔧 Paso 4: Insertando registro...");
+          console.log("🔧 Datos para insertar:", {proyecto_id, persona_id: personaResult.lastID, expediente_id: expedienteResult.lastID, estado_id: estadoRow.id, usuario_creador_id, fecha_registro, fecha_en_caja});
+          // Insertar registro
+          const registroResult = await this.executeRun(
+            `INSERT INTO registros (
+              proyecto_id, persona_id, expediente_id, estado_id, usuario_creador_id, fecha_registro, fecha_en_caja, eliminado
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+            [proyecto_id, personaResult.lastID, expedienteResult.lastID, estadoRow.id, usuario_creador_id, fecha_registro, fecha_en_caja]
+          );
+          console.log("✅ Registro insertado, ID:", registroResult.lastID);
+
+          return {
+            id: registroResult.lastID,
+            persona_id: personaResult.lastID,
+            expediente_id: expedienteResult.lastID,
+            estado_id: estadoRow.id,
+            nombre,
+            numero,
+            dni,
+            expediente: expediente || "---",
+            estado,
+            fecha_registro,
+            fecha_en_caja,
+          };
+        } catch (error) {
+          console.error("❌ Error en transacción de guardado:", error);
+          throw error;
         }
-
-        // Insertar registro
-        const registroResult = await this.executeRun(
-          `INSERT INTO registros (
-            proyecto_id, persona_id, expediente_id, estado_id, usuario_creador_id, fecha_registro, fecha_en_caja, eliminado
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-          [proyecto_id, personaResult.lastID, expedienteResult.lastID, estadoRow.id, usuario_creador_id, fecha_registro, fecha_en_caja]
-        );
-
-        return {
-          id: registroResult.lastID,
-          persona_id: personaResult.lastID,
-          expediente_id: expedienteResult.lastID,
-          estado_id: estadoRow.id,
-          nombre,
-          numero,
-          dni,
-          expediente: expediente || "---",
-          estado,
-          fecha_registro,
-          fecha_en_caja,
-        };
       }
     ]);
   }
@@ -438,6 +463,27 @@ class RegistroModel extends BaseModel {
     const mes = String(hoy.getMonth() + 1).padStart(2, '0');
     const dia = String(hoy.getDate()).padStart(2, '0');
     return `${año}-${mes}-${dia}`;
+  }
+
+  // Obtener fechas disponibles para filtros
+  async obtenerFechasDisponibles(tipo = "registro") {
+    try {
+      const campoFecha = tipo === "solicitud" ? "expedientes.fecha_solicitud" : "registros.fecha_registro";
+
+      const query = `
+        SELECT DISTINCT strftime('%Y', ${campoFecha}) as año
+        FROM registros
+        LEFT JOIN expedientes ON registros.expediente_id = expedientes.id
+        WHERE registros.eliminado = 0 AND ${campoFecha} IS NOT NULL
+        ORDER BY año DESC
+      `;
+
+      const rows = await this.executeQuery(query);
+      return rows.map(row => row.año).filter(año => año);
+    } catch (error) {
+      console.error('Error obteniendo fechas disponibles:', error);
+      return [];
+    }
   }
 }
 

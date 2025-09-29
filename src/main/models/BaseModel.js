@@ -55,7 +55,8 @@ class BaseModel {
       this.db.serialize(() => {
         this.db.run("BEGIN TRANSACTION");
 
-        Promise.all(operations)
+        // Ejecutar todas las funciones de la transacción
+        Promise.all(operations.map(op => op()))
           .then(results => {
             this.db.run("COMMIT", (err) => {
               if (err) {

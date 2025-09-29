@@ -239,11 +239,22 @@ class RegistroController extends BaseController {
   async obtenerEstadisticas(params = {}) {
     try {
       const { tipo = "registro", anio = "Todo" } = params;
-      
-      // Esta lógica vendría del modelo o un servicio de estadísticas
-      // Por ahora mantenemos la lógica original
+
+      // Obtener estadísticas básicas y detalladas
       const resultado = await this.calcularEstadisticas(tipo, anio);
-      return resultado;
+
+      // Agregar estadísticas adicionales para el dashboard
+      const hoy = new Date().toISOString().split('T')[0];
+      const registrosHoy = await this.model.executeQuery(`
+        SELECT COUNT(*) as total
+        FROM registros
+        WHERE DATE(fecha_registro) = ? AND eliminado = 0
+      `, [hoy]);
+
+      return {
+        ...resultado,
+        hoy: registrosHoy[0]?.total || 0
+      };
     } catch (error) {
       this.handleError(error, "Error obteniendo estadísticas");
     }

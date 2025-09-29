@@ -41,7 +41,7 @@ function Papeleria() {
     registro.apellidos.toLowerCase().includes(busqueda.toLowerCase()) ||
     registro.dni.includes(busqueda) ||
     registro.expediente.toLowerCase().includes(busqueda.toLowerCase()) ||
-    registro.tipo_documento.toLowerCase().includes(busqueda.toLowerCase())
+    (registro.expediente || registro.codigo || '').toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const totalPaginas = Math.ceil(registrosFiltrados.length / registrosPorPagina);
@@ -173,7 +173,7 @@ function Papeleria() {
                   Expediente
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">
-                  Tipo Documento
+                  Estado
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-red-600 uppercase tracking-wider">
                   Eliminado por
@@ -228,7 +228,7 @@ function Papeleria() {
                       </code>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {registro.tipo_documento}
+                      {registro.estado || '---'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{registro.eliminado_por}</div>
